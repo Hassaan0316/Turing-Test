@@ -78,12 +78,12 @@ const Header = () => {
   return (
     <div className={styles.headerWrapper}>
       <div className={styles.headerWrapper__content}>
-        {/* <Image
+        <Image
           src={'/Assets/img/TLogo.png'}
           width={200}
           height={24}
           alt="logo"
-        /> */}
+        />
         <Button type="primary" onClick={() => handleLogout()}>
           Logout
         </Button>

@@ -120,6 +120,7 @@ const TableContent = ({ tableData, tableParams, handleRefetchNextPage, isLoading
       }
     }).then(res => {
       handleRefetch();
+      alert('Record Archieve/Unarchieved')
     }).catch(err => console.log(err));
   };
 
