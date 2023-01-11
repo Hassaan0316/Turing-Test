@@ -1,0 +1,18 @@
+.headerWrapper {
+  width: 100%;
+  background: white;
+  position: fixed;
+  top: 0;
+  height: 80px;
+  border-bottom: 1px solid gray;
+  z-index: 999;
+
+  & .headerWrapper__content {
+    height: inherit;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0px 3%;
+    align-items: center;
+  }
+}

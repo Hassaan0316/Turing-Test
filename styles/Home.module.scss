@@ -1,0 +1,105 @@
+.homeWrapper {
+  position: relative;
+  padding-top: 120px;
+  margin: 0px 3%;
+  width: 94%;
+  display: flex;
+  flex-direction: column;
+
+  & .filterClass {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.8rem;
+    margin: 1.5rem 0px;
+    width: 400px;
+  }
+}
+
+.statusButton {
+  width: 6.5rem;
+  height: 35px;
+  align-items: center;
+  background-color: rgb(118, 185, 71, 0.3);
+  display: flex;
+  justify-content: center;
+  color: #fff;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.durationContent {
+  display: flex;
+  flex-direction: column;
+  word-spacing: 4px;
+
+  & .durationContent__time__seconds {
+    margin-top: 10px;
+    color: blue;
+  }
+}
+
+.actionButton {
+  width: 6.5rem;
+  height: 35px;
+  align-items: center;
+  background-color: blueviolet;
+  display: flex;
+  justify-content: center;
+  color: #fff;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+
+  &:hover {
+    border: none;
+    outline: none;
+    background-color: rgb(138, 43, 226, 0.8);
+  }
+
+  &:focus {
+    border: none;
+    outline: none;
+  }
+}
+
+.modalTitle {
+  display: flex;
+  flex-direction: column;
+
+  h3 {
+    color: black;
+  }
+
+  p {
+    color: blue;
+    margin-bottom: 1rem;
+    
+  }
+}
+
+.modal__contentWrapper {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+
+  ul {
+
+    li {
+      margin-bottom: .5rem;
+      list-style: none;
+
+      div {
+        display: flex;
+        flex-direction: row;
+
+        h4 {
+          width: 20%;
+        }
+      }
+    }
+  }
+}

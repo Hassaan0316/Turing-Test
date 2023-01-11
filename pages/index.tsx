@@ -1,11 +1,86 @@
+import { useMemo, useState } from 'react';
 import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from '../styles/Home.module.css'
-
-const inter = Inter({ subsets: ['latin'] })
+// import Select from 'react-select'
+import { useQuery } from '@apollo/client';
+import { TablePaginationConfig } from 'antd';
+import Header from '@container/Header/Header'
+import { callQueries } from 'lib/apollo/query/callQuery';
+import { INodeData, IPaginationParams, NodesType, TSelectFilter } from 'types/dataTypes';
+import TableContent from '@container/Table/TableContent';
+import { FilterValue, SorterResult } from 'antd/es/table/interface';
+import styles from '@styles/Home.module.scss';
+import dynamic from 'next/dynamic';
+const Select = dynamic(
+  () => import('react-select').then((mod) => mod.default),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
+const options = [
+  { value: 'all', label: 'All' },
+  { value: 'missed', label: 'Missed' },
+  { value: 'archived', label: 'Archived' },
+  { value: 'unArchieve', label: 'Unarchieve' }
+]
 
 export default function Home() {
+  const [offset, setOffset] = useState(0);
+  const [filteredValue, setFileteredValue] = useState({ value: 'all', label: 'All' },)
+  const [total, setTotal] = useState(10);
+  const [tableParams, setTableParams] = useState<IPaginationParams>({
+    pagination: {
+      position: ['bottomCenter'],
+      current: 1,
+      pageSize: 10,
+      showSizeChanger: false,
+    },
+  });
+  const { data, error, loading: isLoading } = useQuery<INodeData>(callQueries.Call, {
+    variables: {
+      offset: offset,
+      limit: tableParams.pagination?.pageSize
+    },
+  });
+
+  const handleRefetchNextPage = (
+    pagination: TablePaginationConfig, filters: Record<string, FilterValue>, sorter: SorterResult<INodeData>,
+  ) => {
+    // @ts-ignore
+    const toSkip = (pagination?.current * pagination.pageSize) - pagination?.pageSize;
+    setTableParams({ pagination, filters, ...sorter });
+    setOffset(toSkip);
+  };
+
+  const handleChangeFilter = (e: TSelectFilter) => {
+    setFileteredValue({ value: e.value, label: e.label })
+  }
+
+  const handleFilters = (receivedData: NodesType[]) => {
+    if (filteredValue.value === 'archived') {
+      return receivedData.filter((item) => item.is_archived === true)
+    } else if (filteredValue.value === 'unArchieve') {
+      console.log(receivedData)
+      return receivedData.filter((item) => item.is_archived === false)
+    } else {
+      return receivedData.filter((item) => item.call_type === 'missed')
+    }
+  }
+
+  const tableData = useMemo(() => {
+    let receivedData: NodesType[] = [];
+    if (data) {
+      const totalCount: number = data?.paginatedCalls.totalCount;
+      setTotal(totalCount);
+      setTableParams({ ...tableParams, pagination: { ...tableParams.pagination, total: totalCount ?? 0 } });
+      receivedData = data.paginatedCalls.nodes.map((item: NodesType) => {
+        return { ...item, key: item.id }
+      });
+      if (filteredValue.value !== 'all') receivedData = handleFilters(receivedData) 
+    }
+    return receivedData;
+  }, [data, filteredValue])
+
   return (
     <>
       <Head>
@@ -14,110 +89,24 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
+
+      <div className={styles.homeWrapper}>
+        {/* <h2>Turing Technologies Frontend Test</h2> */}
+        <div className={styles.filterClass}>
+          <p className={styles.filterLabel}>Filter by :</p>
+          <div style={{ width: '200px' }}>
+            <Select onChange={handleChangeFilter} value={filteredValue} styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }} options={options} />
+
           </div>
         </div>
 
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+        <TableContent
+          // @ts-ignore
+          handleRefetchNextPage={handleRefetchNextPage}
+          isLoading={isLoading}
+          tableParams={tableParams} tableData={tableData} />
+      </div>
+      <Header />
     </>
   )
 }
