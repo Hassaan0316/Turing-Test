@@ -1,12 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
-import { Modal, Space } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Modal } from 'antd';
 import { NodesType } from 'types/dataTypes';
 import styles from '@styles/Home.module.scss';
 import { calculateMinutesSeconds } from 'utils/helperFunctions';
-import { gql, useMutation, useSubscription } from '@apollo/client';
 import { userMutations } from 'lib/apollo/mutations/userMutations';
-import { subscriptionCall } from 'lib/apollo/subscriptions/updateSubs';
+import { useMutation } from '@apollo/client';
 
 type ModalPropTypes = {
   open: boolean;
