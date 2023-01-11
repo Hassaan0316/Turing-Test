@@ -26,7 +26,6 @@ const options = [
 export default function Home() {
   const [offset, setOffset] = useState(0);
   const [filteredValue, setFileteredValue] = useState({ value: 'all', label: 'All' },)
-  const [total, setTotal] = useState(10);
   const [tableParams, setTableParams] = useState<IPaginationParams>({
     pagination: {
       position: ['bottomCenter'],
@@ -35,12 +34,16 @@ export default function Home() {
       showSizeChanger: false,
     },
   });
-  const { data, error, loading: isLoading } = useQuery<INodeData>(callQueries.Call, {
+  const { data, error, loading: isLoading, refetch } = useQuery<INodeData>(callQueries.Call, {
     variables: {
       offset: offset,
       limit: tableParams.pagination?.pageSize
     },
   });
+
+  const handleRefetch = () => {
+    refetch();
+  };
 
   const handleRefetchNextPage = (
     pagination: TablePaginationConfig, filters: Record<string, FilterValue>, sorter: SorterResult<INodeData>,
@@ -70,12 +73,11 @@ export default function Home() {
     let receivedData: NodesType[] = [];
     if (data) {
       const totalCount: number = data?.paginatedCalls.totalCount;
-      setTotal(totalCount);
       setTableParams({ ...tableParams, pagination: { ...tableParams.pagination, total: totalCount ?? 0 } });
       receivedData = data.paginatedCalls.nodes.map((item: NodesType) => {
         return { ...item, key: item.id }
       });
-      if (filteredValue.value !== 'all') receivedData = handleFilters(receivedData) 
+      if (filteredValue.value !== 'all') receivedData = handleFilters(receivedData)
     }
     return receivedData;
   }, [data, filteredValue])
@@ -102,6 +104,7 @@ export default function Home() {
         <TableContent
           // @ts-ignore
           handleRefetchNextPage={handleRefetchNextPage}
+          handleRefetch={handleRefetch}
           isLoading={isLoading}
           tableParams={tableParams} tableData={tableData} />
       </div>

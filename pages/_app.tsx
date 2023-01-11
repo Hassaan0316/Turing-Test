@@ -26,10 +26,7 @@ interface AuthResponseType {
 }
 
 const httpLink = new HttpLink({
-  uri:
-    process.env.NEXT_PUBLIC_GRAPHQL_HTTP_LINK ||
-    'https://frontend-test-api.aircall.io/graphql',
-  // credentials: 'same-origin',
+  uri: 'https://frontend-test-api.aircall.io/graphql',
 });
 
 const authLink = setContext((_, { headers }) => {

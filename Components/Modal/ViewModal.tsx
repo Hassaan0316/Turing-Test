@@ -1,23 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import { Modal } from 'antd';
 import { NodesType } from 'types/dataTypes';
-import styles from '@styles/Home.module.scss';
 import { calculateMinutesSeconds } from 'utils/helperFunctions';
-import { userMutations } from 'lib/apollo/mutations/userMutations';
-import { useMutation } from '@apollo/client';
+import styles from '@styles/Home.module.scss';
 
 type ModalPropTypes = {
   open: boolean;
-  loading: boolean;
-  content: string;
   children: React.ReactNode,
   record: NodesType,
   handleCloseModal: (value: boolean) => void;
 };
 
-const ReusableUpdateModal = ({ open, handleCloseModal, loading, content, children, record }: ModalPropTypes) => {
+const ViewModal = ({ open, handleCloseModal, children, record }: ModalPropTypes) => {
   const [note, setNote] = useState('');
-  const [triggerAddNote] = useMutation(userMutations.addNote)
 
   // const { data, loading: subLoading, error } = useSubscription(subscriptionCall.updateSubstription);
   // console.log(data, error)
@@ -29,9 +24,8 @@ const ReusableUpdateModal = ({ open, handleCloseModal, loading, content, childre
   const Title = () => {
     return (
       <div className={styles.modalTitle}>
-        <h3>Add Notes</h3>
-        <p>Call Id {content}</p>
-        <hr style={{ width: '100%' }} />
+        <h3 style={{ marginBottom: '.5rem' }}>Call Information</h3>
+        <hr />
       </div>
     )
   }
@@ -46,23 +40,15 @@ const ReusableUpdateModal = ({ open, handleCloseModal, loading, content, childre
     }
   }, [record])
 
-  const saveNote = async () => {
-    if (!note) {
-      return alert("Please provide valid value");
+  const created = useMemo(() => {
+    if (record) {
+      const d = new Date(record.created_at).toLocaleString().split(',')
+      return d
     }
-    await triggerAddNote({
-      variables: {
-        id: record.id,
-        content: note
-      }
-    }).then((res) => {
-      alert('Note added successfully');
-      hideModal()
-    }).catch(err => console.log(err));
-  }
+  }, [record])
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNote(e.target.value);
+  const saveNote = async () => {
+    hideModal()
   }
 
   return (
@@ -70,10 +56,9 @@ const ReusableUpdateModal = ({ open, handleCloseModal, loading, content, childre
       <Modal
         title={<Title />}
         open={open}
-        confirmLoading={loading}
         onOk={() => saveNote()}
         onCancel={hideModal}
-        okText="Save"
+        okText="Ok"
         style={{ top: 100 }}
         cancelText="Cancel">
         <div className={styles.modal__contentWrapper}>
@@ -104,18 +89,33 @@ const ReusableUpdateModal = ({ open, handleCloseModal, loading, content, childre
             </li>
             <li>
               <div>
-                <h4>Via</h4>
-                <p>{record?.via}</p>
+                <h4>ID</h4>
+                <p>{record?.id}</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h4>direction</h4>
+                <p>{record?.direction}</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h4>Is Archived</h4>
+                <p>{record?.is_archived.toString()}</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h4>Created At</h4>
+                <p> {created && created[0]} {created && created[1]}</p>
               </div>
             </li>
           </ul>
-          <h4>Note</h4>
-          <textarea style={{ padding: 10, resize: 'none' }} placeholder="Add Note" value={note} rows={4} onChange={handleChange}  >
-          </textarea>
         </div>
       </Modal>
     </>
   );
 };
 
-export default ReusableUpdateModal;
+export default ViewModal;

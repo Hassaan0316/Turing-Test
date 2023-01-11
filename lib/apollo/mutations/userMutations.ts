@@ -8,4 +8,11 @@ export const userMutations = {
       }
     }
   `,
+  archiveCall: gql`
+    mutation archiveCall($id: ID!) {
+      archiveCall(id :$id) {
+        id
+      }
+    }
+  `,
 };

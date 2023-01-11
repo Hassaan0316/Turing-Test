@@ -53,6 +53,10 @@ export const columns = [
     dataIndex: 'created_at',
     key: 'created_at',
     width: 120,
+    sorter: {
+      compare: (a, b) => a.created_at.localeCompare(b.created_at),
+      multiple: 1,
+    },
     render: text => {
       const updatedText = new Date(text).toLocaleString().split(',');
       return <p>{updatedText[0].split('/').join('-')}</p>;

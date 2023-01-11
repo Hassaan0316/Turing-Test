@@ -8,31 +8,27 @@ import { columns } from 'data/tableData';
 import { calculateMinutesSeconds, capitalizeFirst } from 'utils/helperFunctions';
 import ReusableUpdateModal from '@components/Modal/ReusableUpdateModal';
 import styles from '@styles/Home.module.scss';
+import ViewModal from '@components/Modal/ViewModal';
+import { useMutation } from '@apollo/client';
+import { userMutations } from 'lib/apollo/mutations/userMutations';
 
 interface IPropTypes {
   tableData: NodesType[]
   tableParams: IPaginationParams;
   isLoading: boolean;
+  handleRefetch: () => void;
   handleRefetchNextPage: () => void;
-  // handleChangeSelectSortDirection: (e: React.ChangeEvent<HTMLInputElement>) => void,
-  // handleChangeSelectSortKey: (e: React.ChangeEvent<HTMLInputElement>) => void,
 }
 
-const initialState = {
-  _id: '',
-  news: '',
-  liveVideoLink: '',
-  logoLink: '',
-}
-
-const TableContent = ({ tableData, tableParams,handleRefetchNextPage,isLoading }: IPropTypes) => {
+const TableContent = ({ tableData, tableParams, handleRefetchNextPage, isLoading, handleRefetch }: IPropTypes) => {
   const [editingKey, setEditingKey] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<NodesType | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
-  const [showPop, setShowpop] = useState(false);
-  const [openManyModal, setOpenManyModal] = useState(false);
-  const searchInput = useRef<InputRef>(null);
+  const [selectedRows, setSelectedRows] = useState<NodesType | undefined>();
+  const [view, setView] = useState<boolean>();
   const [open, setOpen] = useState<boolean>(false);
+
+  const [triggerArchieve] = useMutation(userMutations.archiveCall);
 
   // & {key: React.Key}
   const edit = (record: NodesType) => {
@@ -44,35 +40,13 @@ const TableContent = ({ tableData, tableParams,handleRefetchNextPage,isLoading }
     setEditingKey('');
   };
 
-  const save = async () => {
-    // const body = { ...updatePortal };
-    // await triggerUpdate(body).then((res: any) => {
-    //   if (res?.error) [getAPIErrorMessage(res.error), dispatch(loadingUpdateAction(false))];
-    //   else {
-    //     const msg = res?.data?.msg || 'Portal Updated Successfully';
-    //     alert(msg);
-    //   }
-    //   handleCloseModal();
-    //   handleRefetch();
-    // });
-  };
-
-  const handleReset = (clearFilters: () => void) => {
-    clearFilters();
-  };
-
-  const handleSearch = (confirm: (param?: FilterConfirmProps) => void) => {
-    confirm();
-  };
-
-
-  const handleOpenModal = async () => {
-    setShowpop(true);
-  };
-
   const handleModal = (value: boolean) => {
     setOpen(value);
-  } 
+  }
+
+  const handleCloseViewModal = (value: boolean) => {
+    setView(value);
+  }
 
   const getUpdateRender = (): ColumnType<NodesType> => ({
     render: (_: any, record: NodesType) => {
@@ -105,7 +79,7 @@ const TableContent = ({ tableData, tableParams,handleRefetchNextPage,isLoading }
             {timeValue.minutes} minutes {timeValue.seconds} seconds
           </p>
           <p className={styles.durationContent__time__seconds}>
-             ({type}) seconds
+            ({type}) seconds
           </p>
         </div>
       );
@@ -139,10 +113,25 @@ const TableContent = ({ tableData, tableParams,handleRefetchNextPage,isLoading }
     }
   });
 
+  const handleDeleteRecord = async () => {
+    triggerArchieve({
+      variables: {
+        id: selectedRows.id
+      }
+    }).then(res => {
+      handleRefetch();
+    }).catch(err => console.log(err));
+  };
+
   return (
     <>
+      {selectedRows && (
+        <button className={styles.actionButton} style={{ width: '20%', marginBottom: '1rem' }} onClick={() => handleDeleteRecord()}>
+          Archieve Selected Record
+        </button>
+      )}
       <Table
-        style={{zIndex: 0}}
+        style={{ zIndex: 0 }}
         columns={columnsData}
         dataSource={tableData}
         size={'small'}
@@ -153,32 +142,35 @@ const TableContent = ({ tableData, tableParams,handleRefetchNextPage,isLoading }
         bordered={false}
         onChange={handleRefetchNextPage}
         pagination={tableParams.pagination}
-      // expandable={{
-      //   columnWidth: 20,
-      //   expandedRowRender: record => <div>{record.news}</div>,
-      //   rowExpandable: record => record.news ? true : false,
-      // }}
+        rowSelection={{
+          type: 'radio',
+          onChange(selectedRowKeys, selectedRows, info) {
+            setSelectedRows(selectedRows[0])
+          },
+        }}
+        onRow={(record, rowIndex) => {
+          return {
+            onClick: () => {
+              setSelectedRecord(record);
+              handleCloseViewModal(true);
+            },
+          };
+        }}
       />
       <ReusableUpdateModal
         content={editingKey}
         handleCloseModal={handleModal}
-        save={() => save()}
         open={open}
         record={selectedRecord}
         loading={loading}
       >
-        {/* <Box paddingTop={2}>
-          <Box paddingY={1}>
-            <ReusableTextField label='Live Video Link' name='liveVideoLink' type='url' value={updatePortal.liveVideoLink || ''} handleChange={handleUpdateValues} />
-          </Box>
-          <Box paddingY={1}>
-            <ReusableTextField label='Logo Link' name='logoLink' type='url' value={updatePortal.logoLink || ''} handleChange={handleUpdateValues} />
-          </Box>
-          <Box paddingY={1}>
-            <ReusableTextField label='News' name='news' rows={5} type='textArea' value={updatePortal.news || ''} handleChange={handleUpdateValues} />
-          </Box>
-        </Box> */}
       </ReusableUpdateModal>
+      <ViewModal
+        handleCloseModal={handleCloseViewModal}
+        open={view}
+        record={selectedRecord}
+      >
+      </ViewModal>
     </>
   );
 };
